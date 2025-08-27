@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 14",
+	"properties": {
+		"content": {
+			"query": "CREATE TABLE dim_rider (\n    account_number INT NOT NULL,\n    first_name VARCHAR(50) NOT NULL,\n    last_name VARCHAR(50) NOT NULL,\n    address VARCHAR(100),\n    birthdate DATE,\n    rider_age INT,\n    is_member BIT NOT NULL,\n    account_start_date DATE,\n    account_end_date DATE\n)\nWITH (\n    DISTRIBUTION = HASH(account_number),\n    HEAP\n);\n\nINSERT INTO dim_rider (account_number, first_name, last_name, address, birthdate, rider_age, is_member, account_start_date, account_end_date)\nSELECT\n    rider_id AS account_number,\n    first_name,\n    last_name,\n    address,\n    TRY_CAST(LEFT(birthdate, 10) AS DATE) AS birthdate,\n    CASE \n        WHEN TRY_CAST(LEFT(birthdate, 10) AS DATE) IS NOT NULL THEN\n            DATEDIFF(YEAR, TRY_CAST(LEFT(birthdate, 10) AS DATE), GETDATE())\n            - CASE \n                WHEN DATEADD(YEAR, DATEDIFF(YEAR, TRY_CAST(LEFT(birthdate, 10) AS DATE), GETDATE()), TRY_CAST(LEFT(birthdate, 10) AS DATE)) > GETDATE() THEN 1\n                ELSE 0\n              END\n        ELSE NULL\n    END AS rider_age,\n    is_member,\n    TRY_CAST(LEFT(account_start, 10) AS DATE) AS account_start_date,\n    TRY_CAST(LEFT(account_end, 10) AS DATE) AS account_end_date\nFROM\n    dbo.rider\nWHERE\n    TRY_CAST(LEFT(birthdate, 10) AS DATE) IS NOT NULL;\n\n\n\n-- Sample query to verify data\nSELECT TOP 100 * FROM dim_rider;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SQL_database_dedicated",
+				"poolName": "SQL_database_dedicated"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 13",
+	"properties": {
+		"content": {
+			"query": "-- Create fact_trip table optimized for Dedicated SQL Pool\nCREATE TABLE fact_trip (\n    trip_id VARCHAR(50) NOT NULL,\n    trip_type VARCHAR(75),\n    started_at DATETIME2 NOT NULL,\n    ended_at DATETIME2 NOT NULL,\n    start_station_id VARCHAR(50),\n    end_station_id VARCHAR(50),\n    rider_id INT NOT NULL,\n    duration_trip FLOAT      -- Duration in minutes\n)\nWITH (\n    DISTRIBUTION = HASH(trip_id),         -- Distribute by trip_id for better load & join performance\n    CLUSTERED COLUMNSTORE INDEX           -- Best for large fact tables, analytical queries\n);\n\n-- Insert data with proper conversions and join\nINSERT INTO fact_trip (trip_id, trip_type, started_at, ended_at, start_station_id, end_station_id, rider_id, duration_trip)\nSELECT\n    trip.trip_id,\n    trip.trip_type,\n    TRY_CAST(trip.started_at AS DATETIME2) AS started_at,\n    TRY_CAST(trip.ended_at AS DATETIME2) AS ended_at,\n    trip.start_station_id,\n    trip.end_station_id,\n    trip.rider_id ,\n    DATEDIFF(MINUTE, TRY_CAST(trip.started_at AS DATETIME2), TRY_CAST(trip.ended_at AS DATETIME2)) AS duration_trip\nFROM\n    dbo.trip trip\nWHERE\n    TRY_CAST(trip.started_at AS DATETIME2) IS NOT NULL\n    AND TRY_CAST(trip.ended_at AS DATETIME2) IS NOT NULL\n;\n\n-- Sample data check\nSELECT TOP 100 * FROM fact_trip;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SQL_database_dedicated",
+				"poolName": "SQL_database_dedicated"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

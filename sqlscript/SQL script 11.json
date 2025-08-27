@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 11",
+	"properties": {
+		"content": {
+			"query": "-- Create the fact_payment table optimized for Dedicated SQL Pool\nCREATE TABLE fact_payment (\n    payment_id varchar(50) NOT NULL,\n    payment_date DATE NOT NULL,\n    payment_amount varchar(50) NOT NULL,\n    account_number varchar(50) NOT NULL\n)\nWITH (\n    DISTRIBUTION = HASH(payment_id),  -- Optimize for query and loading on account_number\n    CLUSTERED COLUMNSTORE INDEX           -- Best for large fact tables\n);\n\n-- Insert data from staging with safe conversion\nINSERT INTO fact_payment (payment_id, payment_date, payment_amount, account_number)\nSELECT\n    payment_id,\n    TRY_CAST(LEFT(payment_date, 10) AS DATE) AS payment_date,\n    payment_amount,\n    rider_id AS account_number\nFROM\n    dbo.PAYMENT\nWHERE\n    TRY_CAST(LEFT(payment_date, 10) AS DATE) IS NOT NULL;\n\n-- Sample query to verify data\nSELECT TOP 100 * FROM fact_payment;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SQL_database_dedicated",
+				"poolName": "SQL_database_dedicated"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

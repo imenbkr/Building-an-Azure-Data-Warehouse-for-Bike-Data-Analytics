@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 12",
+	"properties": {
+		"content": {
+			"query": "-- Create dim_station table optimized for Dedicated SQL Pool\nCREATE TABLE dim_station (\n    station_id VARCHAR(100) NOT NULL,\n    station_name VARCHAR(100) NOT NULL,\n    station_latitude FLOAT NOT NULL,\n    station_longitude FLOAT NOT NULL\n)\nWITH (\n    DISTRIBUTION = HASH(station_id),         -- Distribute by station_id for performance on joins\n    HEAP                                    -- Use HEAP, or consider CLUSTERED COLUMNSTORE if table grows large\n);\n\n-- Insert data from staging_station\nINSERT INTO dim_station (station_id, station_name, station_latitude, station_longitude)\nSELECT\n    station_id,\n    station_name,\n    latitude,\n    longitude\nFROM\n    dbo.station\nWHERE\n    station_id IS NOT NULL                    -- Filter out rows with null station_id\n    AND latitude IS NOT NULL\n    AND longitude IS NOT NULL\n;\n\n-- Sample select to verify data\nSELECT TOP 100 * FROM dim_station;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SQL_database_dedicated",
+				"poolName": "SQL_database_dedicated"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

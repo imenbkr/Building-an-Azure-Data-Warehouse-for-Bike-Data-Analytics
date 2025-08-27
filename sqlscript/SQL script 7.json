@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 7",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseDelimitedTextFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseDelimitedTextFormat] \n\tWITH ( FORMAT_TYPE = DELIMITEDTEXT ,\n\t       FORMAT_OPTIONS (\n\t\t\t FIELD_TERMINATOR = ',',\n\t\t\t FIRST_ROW = 1,\n\t\t\t USE_TYPE_DEFAULT = FALSE\n\t\t\t))\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'analyticsfilesystem11_analyticsdatalake11_dfs_core_windows_net') \n\tCREATE EXTERNAL DATA SOURCE [analyticsfilesystem11_analyticsdatalake11_dfs_core_windows_net] \n\tWITH (\n\t\tLOCATION = 'abfss://analyticsfilesystem11@analyticsdatalake11.dfs.core.windows.net', \n\t\tTYPE = HADOOP \n\t)\nGO\nIF OBJECT_ID('dbo.station', 'U') IS NOT NULL\n    DROP EXTERNAL TABLE dbo.station;\nGO\n\nCREATE EXTERNAL TABLE dbo.station (\n\tstation_id VARCHAR(100),\n\tstation_name VARCHAR(100),\n\tlatitude FLOAT,\n\tlongitude FLOAT\n\t)\n\tWITH (\n\tLOCATION = 'stations.csv',\n\tDATA_SOURCE = [analyticsfilesystem11_analyticsdatalake11_dfs_core_windows_net],\n\tFILE_FORMAT = [SynapseDelimitedTextFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM dbo.station\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SQL_database_dedicated",
+				"poolName": "SQL_database_dedicated"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
